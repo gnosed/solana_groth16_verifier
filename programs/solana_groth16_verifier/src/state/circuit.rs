@@ -1,29 +1,17 @@
+use crate::public_inputs::PUBLIC_INPUTS;
+use crate::verifying_key::VERIFYING_KEY;
 use anchor_lang::prelude::*;
-use num_derive::*;
-use num_traits::*;
-
-use ark_bn254::*;
-use ark_ec::*;
+use ark_bn254;
+use ark_ec;
 use ark_ff::bytes::{FromBytes, ToBytes};
+use groth16_solana::groth16::*;
 use std::ops::Neg;
 
 #[account]
-pub struct Circuit {
-    verifying_key: Groth16Verifyingkey,
-    public_inputs: [u8; 9 * 32],
-}
+pub struct Circuit;
 
 impl Circuit {
-    pub fn setup(
-        &mut self,
-        verifying_key: Groth16Verifyingkey,
-        public_inputs: [u8; 9 * 32],
-    ) -> Result<()> {
-        self.verifying_key = verifying_key;
-        self.public_inputs = public_inputs;
-
-        Ok(());
-    }
+    pub const MAXIMUM_SIZE: usize = 10000;
 
     type G1 = ark_ec::short_weierstrass_jacobian::GroupAffine<ark_bn254::g1::Parameters>;
 
@@ -40,7 +28,7 @@ impl Circuit {
     pub fn verify_proof(proof: [u8; 256]) -> Result<()> {
         let mut public_inputs_vec = Vec::new();
 
-        for input in self.public_inputs.chunks(32) {
+        for input in PUBLIC_INPUTS.chunks(32) {
             public_inputs_vec.push(input);
         }
 
@@ -59,7 +47,7 @@ impl Circuit {
             &proof_b,
             &proof_c,
             public_inputs_vec.as_slice(),
-            &self.verifying_key,
+            &VERIFYING_KEY,
         )
         .unwrap();
         verifier.verify().unwrap();

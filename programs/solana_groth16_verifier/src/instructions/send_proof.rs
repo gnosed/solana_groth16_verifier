@@ -1,4 +1,4 @@
-use crate::state::Circuit::*;
+use crate::state::*;
 use anchor_lang::prelude::*;
 
 pub fn send_proof(ctx: Context<SendProof>, proof: [u8; 256]) -> Result<()> {
