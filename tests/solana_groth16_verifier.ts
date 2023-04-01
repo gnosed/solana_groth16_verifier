@@ -13,5 +13,7 @@ describe("solana_groth16_verifier", () => {
     const ownerKeypair = anchor.web3.Keypair.generate();
     const owner = (program.provider as anchor.AnchorProvider).wallet;
     await program.methods.setupCircuit().signers([ownerKeypair]).rpc();
+
+    let circuit
   });
 });

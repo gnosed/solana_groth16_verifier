@@ -1,3 +1,4 @@
+use crate::errors::Groth16VerifierError;
 use crate::public_inputs::PUBLIC_INPUTS;
 use crate::verifying_key::VERIFYING_KEY;
 use anchor_lang::prelude::*;
@@ -13,19 +14,18 @@ pub struct Circuit;
 impl Circuit {
     pub const MAXIMUM_SIZE: usize = 10000;
 
-    type G1 = ark_ec::short_weierstrass_jacobian::GroupAffine<ark_bn254::g1::Parameters>;
-
-    fn change_endianness(bytes: &[u8]) -> Vec<u8> {
-        let mut vec = Vec::new();
-        for b in bytes.chunks(32) {
-            for byte in b.iter().rev() {
-                vec.push(*byte);
+    pub fn verify_proof(&self, proof: [u8; 256]) -> bool {
+        fn change_endianness(bytes: &[u8]) -> Vec<u8> {
+            let mut vec = Vec::new();
+            for b in bytes.chunks(32) {
+                for byte in b.iter().rev() {
+                    vec.push(*byte);
+                }
             }
+            vec
         }
-        vec
-    }
+        type G1 = ark_ec::short_weierstrass_jacobian::GroupAffine<ark_bn254::g1::Parameters>;
 
-    pub fn verify_proof(proof: [u8; 256]) -> Result<()> {
         let mut public_inputs_vec = Vec::new();
 
         for input in PUBLIC_INPUTS.chunks(32) {
@@ -50,6 +50,7 @@ impl Circuit {
             &VERIFYING_KEY,
         )
         .unwrap();
-        verifier.verify().unwrap();
+
+        verifier.verify().unwrap()
     }
 }
